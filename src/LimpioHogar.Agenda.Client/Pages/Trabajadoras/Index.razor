@@ -1,0 +1,84 @@
+@page "/trabajadoras"
+@inject ITrabajadoraService TrabajadoraService
+@inject NavigationManager Nav
+
+<PageTitle>LimpioHogar - Trabajadoras</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <!-- Header -->
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0 0 16px 0;">Trabajadoras</h1>
+        <div style="position:relative;">
+            <MudIcon Icon="@Icons.Material.Filled.Search" Style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:20px;color:#9CA3AF;" />
+            <input type="text" @bind="_busqueda" @bind:event="oninput"
+                   style="width:100%;padding:12px 12px 12px 40px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;"
+                   placeholder="Buscar trabajadora..." />
+        </div>
+    </div>
+
+    <!-- Workers List -->
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        @foreach (var t in TrabajadorasFiltradas)
+        {
+            <div @onclick="@(() => Nav.NavigateTo($"/trabajadoras/{t.Id}"))"
+                 style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;display:flex;align-items:flex-start;justify-content:space-between;cursor:pointer;">
+                <div style="flex:1;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                        <h3 style="font-weight:500;color:#1E2D4E;margin:0;font-size:0.95rem;">@t.NombreCompleto</h3>
+                        <span style="padding:2px 8px;border-radius:9999px;font-size:0.75rem;@(t.Activa ? "background:#D1FAE5;color:#047857;" : "background:#F3F4F6;color:#6B7280;")">
+                            @(t.Activa ? "Activa" : "Inactiva")
+                        </span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;font-size:0.875rem;color:#4B5563;margin-bottom:4px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Phone" Style="font-size:16px;" />
+                        <span>@t.Telefono</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:4px;font-size:0.875rem;color:#4B5563;">
+                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="font-size:16px;" />
+                        <span>@(t.Comuna ?? "Sin comuna")</span>
+                    </div>
+                </div>
+                <MudSwitch T="bool" Value="t.Activa" Color="Color.Secondary"
+                           ValueChanged="@(async (bool val) => await ToggleActiva(t, val))" />
+            </div>
+        }
+
+        @if (!TrabajadorasFiltradas.Any())
+        {
+            <div style="text-align:center;padding:48px 0;">
+                <p style="color:#6B7280;">No se encontraron trabajadoras</p>
+            </div>
+        }
+    </div>
+
+    <!-- FAB -->
+    <a href="/trabajadoras/nueva"
+       style="position:fixed;bottom:88px;right:calc(50% - 175px);width:56px;height:56px;background:#4CAF9A;color:white;border-radius:50%;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;z-index:40;">
+        <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:24px;" />
+    </a>
+</div>
+
+@code {
+    private List<Trabajadora> _trabajadoras = [];
+    private string _busqueda = string.Empty;
+
+    private IEnumerable<Trabajadora> TrabajadorasFiltradas =>
+        string.IsNullOrWhiteSpace(_busqueda)
+            ? _trabajadoras
+            : _trabajadoras.Where(t =>
+                t.NombreCompleto.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) ||
+                (t.Comuna?.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _trabajadoras = await TrabajadoraService.ObtenerTodasAsync(); }
+        catch { /* TODO: handle error */ }
+    }
+
+    private async Task ToggleActiva(Trabajadora t, bool value)
+    {
+        t.Activa = value;
+        try { await TrabajadoraService.ActualizarAsync(t); }
+        catch { t.Activa = !value; }
+    }
+}
