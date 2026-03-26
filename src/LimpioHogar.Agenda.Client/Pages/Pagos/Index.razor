@@ -1,0 +1,164 @@
+@page "/pagos"
+@inject IPagoService PagoService
+@inject IServicioService ServicioService
+@inject NavigationManager Nav
+
+<PageTitle>LimpioHogar - Pagos</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <!-- Header -->
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0 0 12px 0;">Pagos Mensuales</h1>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+            <button @onclick="MesAnterior" style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" Style="font-size:20px;color:#4B5563;" />
+            </button>
+            <span style="font-size:0.875rem;font-weight:500;color:#1E2D4E;">@_mesActual.ToString("MMMM yyyy", _cl)</span>
+            <button @onclick="MesSiguiente" style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Style="font-size:20px;color:#4B5563;" />
+            </button>
+        </div>
+    </div>
+
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+        <!-- Summary -->
+        <div style="background:linear-gradient(135deg,#1E2D4E,#2a3f6b);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;color:white;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Style="font-size:16px;" />
+                <p style="font-size:0.875rem;opacity:0.9;margin:0;">Ingresos Brutos</p>
+            </div>
+            <p style="font-size:1.5rem;font-weight:600;margin:0;">$@_totalIngresos.ToString("N0", _cl)</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <p style="font-size:0.75rem;color:#4B5563;margin:0 0 4px 0;">Pagado Trabajadoras</p>
+                <p style="font-size:1.125rem;font-weight:600;color:#1E2D4E;margin:0;">$@_totalTrabajadoras.ToString("N0", _cl)</p>
+            </div>
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <p style="font-size:0.75rem;color:#4B5563;margin:0 0 4px 0;">Comision Agencia</p>
+                <p style="font-size:1.125rem;font-weight:600;color:#4CAF9A;margin:0;">$@_totalAgencia.ToString("N0", _cl)</p>
+            </div>
+        </div>
+
+        <!-- Progress -->
+        <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+                <p style="font-size:0.875rem;color:#4B5563;margin:0;">Servicios pagados</p>
+                <p style="font-size:0.875rem;font-weight:500;color:#1E2D4E;margin:0;">@_pagosConfirmados de @_totalPagos</p>
+            </div>
+            <div style="margin-top:8px;background:#E5E7EB;border-radius:9999px;height:8px;">
+                <div style="background:#4CAF9A;height:8px;border-radius:9999px;width:@(_totalPagos > 0 ? $"{(int)((double)_pagosConfirmados / _totalPagos * 100)}%" : "0%");transition:width 0.3s;"></div>
+            </div>
+        </div>
+
+        <!-- Payment List -->
+        <h2 style="font-size:0.875rem;font-weight:500;color:#374151;margin:0;">Lista de Servicios</h2>
+        @foreach (var p in _pagosAgrupados)
+        {
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;">
+                    <div>
+                        <p style="font-size:0.875rem;font-weight:500;color:#1E2D4E;margin:0;">@p.Trabajadora</p>
+                        <p style="font-size:0.75rem;color:#6B7280;margin:2px 0 0 0;">@p.Cliente</p>
+                        <p style="font-size:0.7rem;color:#9CA3AF;margin:4px 0 0 0;">@p.Fecha • @p.Plan</p>
+                    </div>
+                    <p style="font-size:0.875rem;font-weight:600;color:#1E2D4E;margin:0;">$@p.Total.ToString("N0", _cl)</p>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid #F3F4F6;">
+                    <div style="display:flex;gap:16px;font-size:0.75rem;">
+                        <div>
+                            <p style="color:#6B7280;margin:0;">Trabajadora</p>
+                            <p style="font-weight:500;color:#1E2D4E;margin:0;">$@p.MontoTrabajadora.ToString("N0", _cl)</p>
+                        </div>
+                        <div>
+                            <p style="color:#6B7280;margin:0;">Agencia</p>
+                            <p style="font-weight:500;color:#4CAF9A;margin:0;">$@p.MontoAgencia.ToString("N0", _cl)</p>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <span style="font-size:0.75rem;color:#4B5563;">@(p.Pagado ? "Pagado" : "Pendiente")</span>
+                        <MudSwitch T="bool" Value="p.Pagado" Color="Color.Secondary"
+                                   ValueChanged="@(async (bool val) => await TogglePago(p))" />
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!_pagosAgrupados.Any())
+        {
+            <div style="text-align:center;padding:48px 0;">
+                <p style="color:#6B7280;">Sin pagos registrados este mes</p>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private DateTime _mesActual = new(DateTime.Now.Year, DateTime.Now.Month, 1);
+    private List<PagoResumen> _pagosAgrupados = [];
+    private int _totalIngresos;
+    private int _totalTrabajadoras;
+    private int _totalAgencia;
+    private int _pagosConfirmados;
+    private int _totalPagos;
+    private static readonly System.Globalization.CultureInfo _cl = new("es-CL");
+
+    protected override async Task OnInitializedAsync() => await CargarPagos();
+
+    private async Task CargarPagos()
+    {
+        try
+        {
+            var pagos = await PagoService.ObtenerPorMesAsync(_mesActual.Year, _mesActual.Month);
+            var ingresos = pagos.Where(p => p.Tipo == "ingreso_cliente").ToList();
+
+            _totalIngresos = ingresos.Sum(p => p.Monto);
+            _totalTrabajadoras = pagos.Where(p => p.Tipo == "egreso_trabajadora").Sum(p => p.Monto);
+            _totalAgencia = _totalIngresos - _totalTrabajadoras;
+            _pagosConfirmados = ingresos.Count(p => p.Confirmado);
+            _totalPagos = ingresos.Count;
+
+            _pagosAgrupados = ingresos.Select(p => new PagoResumen
+            {
+                PagoId = p.Id,
+                Trabajadora = "Trabajadora",
+                Cliente = "Cliente",
+                Fecha = p.FechaPago.ToString("d 'de' MMMM", _cl),
+                Plan = "—",
+                Total = p.Monto,
+                MontoTrabajadora = pagos.FirstOrDefault(x => x.ServicioId == p.ServicioId && x.Tipo == "egreso_trabajadora")?.Monto ?? 0,
+                MontoAgencia = p.Monto - (pagos.FirstOrDefault(x => x.ServicioId == p.ServicioId && x.Tipo == "egreso_trabajadora")?.Monto ?? 0),
+                Pagado = p.Confirmado
+            }).ToList();
+        }
+        catch { }
+    }
+
+    private async Task MesAnterior() { _mesActual = _mesActual.AddMonths(-1); await CargarPagos(); }
+    private async Task MesSiguiente() { _mesActual = _mesActual.AddMonths(1); await CargarPagos(); }
+
+    private async Task TogglePago(PagoResumen p)
+    {
+        try
+        {
+            await PagoService.ConfirmarPagoAsync(p.PagoId);
+            p.Pagado = !p.Pagado;
+            _pagosConfirmados = _pagosAgrupados.Count(x => x.Pagado);
+        }
+        catch { }
+    }
+
+    private class PagoResumen
+    {
+        public Guid PagoId { get; set; }
+        public string Trabajadora { get; set; } = "";
+        public string Cliente { get; set; } = "";
+        public string Fecha { get; set; } = "";
+        public string Plan { get; set; } = "";
+        public int Total { get; set; }
+        public int MontoTrabajadora { get; set; }
+        public int MontoAgencia { get; set; }
+        public bool Pagado { get; set; }
+    }
+}

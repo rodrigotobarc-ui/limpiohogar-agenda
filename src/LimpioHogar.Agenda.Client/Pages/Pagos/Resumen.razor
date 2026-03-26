@@ -1,0 +1,76 @@
+@page "/pagos/resumen"
+@inject IPagoService PagoService
+
+<PageTitle>LimpioHogar - Resumen Comisiones</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:12px;">
+        <a href="/pagos" style="padding:8px;text-decoration:none;">
+            <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Style="font-size:20px;color:#4B5563;" />
+        </a>
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0;">Resumen Mensual</h1>
+    </div>
+
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+        <div style="background:linear-gradient(135deg,#1E2D4E,#2a3f6b);border-radius:12px;padding:24px;color:white;">
+            <h2 style="font-size:1rem;margin:0 0 8px 0;">Comision Neta</h2>
+            <p style="font-size:2rem;font-weight:700;margin:0;">$@_comisionNeta.ToString("N0", _cl)</p>
+            <p style="font-size:0.875rem;opacity:0.7;margin-top:4px;">@DateTime.Now.ToString("MMMM yyyy", _cl)</p>
+        </div>
+
+        <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+            <h3 style="font-size:0.875rem;color:#374151;margin:0 0 16px 0;">Desglose</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;font-size:0.875rem;">
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #F3F4F6;">
+                    <span style="color:#6B7280;">Ingresos brutos</span>
+                    <span style="font-weight:600;color:#1E2D4E;">$@_ingresos.ToString("N0", _cl)</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding-bottom:12px;border-bottom:1px solid #F3F4F6;">
+                    <span style="color:#6B7280;">Pagado trabajadoras</span>
+                    <span style="font-weight:600;color:#EF4444;">-$@_egresosTrabajadoras.ToString("N0", _cl)</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                    <span style="font-weight:600;color:#1E2D4E;">Comision agencia</span>
+                    <span style="font-weight:700;color:#4CAF9A;">$@_comisionNeta.ToString("N0", _cl)</span>
+                </div>
+            </div>
+        </div>
+
+        <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+            <h3 style="font-size:0.875rem;color:#374151;margin:0 0 16px 0;">Servicios del mes</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
+                <div style="padding:12px;background:#F5F7FA;border-radius:8px;">
+                    <p style="font-size:1.5rem;font-weight:700;color:#1E2D4E;margin:0;">@_totalServicios</p>
+                    <p style="font-size:0.75rem;color:#6B7280;margin:4px 0 0 0;">Total</p>
+                </div>
+                <div style="padding:12px;background:#F5F7FA;border-radius:8px;">
+                    <p style="font-size:1.5rem;font-weight:700;color:#4CAF9A;margin:0;">@_serviciosRealizados</p>
+                    <p style="font-size:0.75rem;color:#6B7280;margin:4px 0 0 0;">Realizados</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int _ingresos;
+    private int _egresosTrabajadoras;
+    private int _comisionNeta;
+    private int _totalServicios;
+    private int _serviciosRealizados;
+    private static readonly System.Globalization.CultureInfo _cl = new("es-CL");
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var pagos = await PagoService.ObtenerPorMesAsync(DateTime.Now.Year, DateTime.Now.Month);
+            _ingresos = pagos.Where(p => p.Tipo == "ingreso_cliente").Sum(p => p.Monto);
+            _egresosTrabajadoras = pagos.Where(p => p.Tipo == "egreso_trabajadora").Sum(p => p.Monto);
+            _comisionNeta = _ingresos - _egresosTrabajadoras;
+            _totalServicios = pagos.Count(p => p.Tipo == "ingreso_cliente");
+            _serviciosRealizados = pagos.Count(p => p.Tipo == "ingreso_cliente" && p.Confirmado);
+        }
+        catch { }
+    }
+}
