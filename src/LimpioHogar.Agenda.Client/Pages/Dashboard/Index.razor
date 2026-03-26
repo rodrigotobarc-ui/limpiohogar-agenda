@@ -1,0 +1,97 @@
+@page "/"
+
+<PageTitle>LimpioHogar - Inicio</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <!-- Header -->
+    <div style="background:white;padding:24px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+        <h1 style="font-size:1.5rem;color:#1E2D4E;margin:0;">Buenos dias, Rodrigo</h1>
+        <p style="font-size:0.875rem;color:#6B7280;margin-top:4px;">@DateTime.Now.ToString("dddd, d 'de' MMMM", new System.Globalization.CultureInfo("es-CL"))</p>
+    </div>
+
+    <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+        <!-- Quick Actions -->
+        <div style="display:flex;gap:8px;">
+            <a href="/agenda/nuevo" style="flex:1;background:#4CAF9A;color:white;padding:12px;border-radius:12px;text-align:center;text-decoration:none;font-size:0.8rem;font-weight:500;">
+                <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:20px;" /><br/>Agendar
+            </a>
+            <a href="/trabajadoras/nueva" style="flex:1;background:white;color:#1E2D4E;padding:12px;border-radius:12px;text-align:center;text-decoration:none;font-size:0.8rem;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Style="font-size:20px;" /><br/>Trabajadora
+            </a>
+            <a href="/clientes/nuevo" style="flex:1;background:white;color:#1E2D4E;padding:12px;border-radius:12px;text-align:center;text-decoration:none;font-size:0.8rem;font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+                <MudIcon Icon="@Icons.Material.Filled.GroupAdd" Style="font-size:20px;" /><br/>Cliente
+            </a>
+        </div>
+
+        <!-- Today's Services -->
+        <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+            <h2 style="font-size:1.125rem;color:#1E2D4E;margin:0 0 16px 0;">Servicios de Hoy</h2>
+
+            @if (_serviciosHoy.Count == 0)
+            {
+                <p style="color:#6B7280;font-size:0.875rem;text-align:center;padding:24px 0;">No hay servicios agendados para hoy</p>
+            }
+            else
+            {
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    @foreach (var s in _serviciosHoy)
+                    {
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:#F5F7FA;border-radius:8px;">
+                            <div style="flex:1;">
+                                <p style="font-size:0.875rem;font-weight:500;color:#1E2D4E;margin:0;">@s.Trabajadora</p>
+                                <p style="font-size:0.75rem;color:#6B7280;margin:2px 0 0 0;">@s.Cliente</p>
+                                <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+                                    <MudIcon Icon="@Icons.Material.Filled.Schedule" Style="font-size:12px;color:#9CA3AF;" />
+                                    <span style="font-size:0.75rem;color:#6B7280;">@s.Hora</span>
+                                </div>
+                            </div>
+                            <span class="badge-@s.Estado.ToLower()">@s.Estado</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Monthly Commission -->
+        <div style="background:linear-gradient(135deg,#1E2D4E,#2a3f6b);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:24px;color:white;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.AttachMoney" Style="font-size:20px;" />
+                <h2 style="font-size:1rem;margin:0;">Comision @DateTime.Now.ToString("MMMM", new System.Globalization.CultureInfo("es-CL"))</h2>
+            </div>
+            <p style="font-size:1.875rem;font-weight:600;margin:0;">$@_comisionNeta.ToString("N0", new System.Globalization.CultureInfo("es-CL"))</p>
+            <p style="font-size:0.875rem;color:#D1D5DB;margin-top:4px;">@_serviciosCompletados servicios completados</p>
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.2);">
+                <div style="display:flex;justify-content:space-between;font-size:0.875rem;">
+                    <span>Ingresos totales</span>
+                    <span style="font-weight:500;">$@_ingresosTotales.ToString("N0", new System.Globalization.CultureInfo("es-CL"))</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:0.875rem;margin-top:8px;">
+                    <span>Pagado trabajadoras</span>
+                    <span style="font-weight:500;">$@_pagadoTrabajadoras.ToString("N0", new System.Globalization.CultureInfo("es-CL"))</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<ServicioHoy> _serviciosHoy = [];
+    private int _comisionNeta = 450000;
+    private int _ingresosTotales = 850000;
+    private int _pagadoTrabajadoras = 400000;
+    private int _serviciosCompletados = 15;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // TODO: Load from ServicioService
+        _serviciosHoy =
+        [
+            new("Maria Gonzalez", "Sr. Lopez", "09:00", "Confirmado"),
+            new("Ana Silva", "Familia Perez", "11:00", "Pendiente"),
+            new("Carolina Rojas", "Sra. Martinez", "14:00", "Confirmado"),
+            new("Patricia Munoz", "Edificio Central", "16:00", "Realizado"),
+        ];
+    }
+
+    private record ServicioHoy(string Trabajadora, string Cliente, string Hora, string Estado);
+}
