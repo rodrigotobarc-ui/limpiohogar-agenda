@@ -1,0 +1,83 @@
+@page "/clientes/{Id:guid}"
+@inject IClienteService ClienteService
+@inject IServicioService ServicioService
+@inject NavigationManager Nav
+
+<PageTitle>LimpioHogar - Detalle Cliente</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:12px;">
+        <button @onclick="@(() => Nav.NavigateTo("/clientes"))"
+                style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+            <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Style="font-size:20px;color:#4B5563;" />
+        </button>
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0;">Detalle Cliente</h1>
+        <div style="flex:1;"></div>
+        <a href="/clientes/editar/@Id" style="color:#4CAF9A;text-decoration:none;font-size:0.875rem;font-weight:500;">Editar</a>
+    </div>
+
+    @if (_cliente is not null)
+    {
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:20px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+                    <h2 style="font-size:1.25rem;color:#1E2D4E;margin:0;">@_cliente.NombreCompleto</h2>
+                    <span style="padding:2px 8px;border-radius:9999px;font-size:0.7rem;background:#E0E7FF;color:#4338CA;">
+                        @(_cliente.Tipo == "casa" ? "Casa" : "Oficina")
+                    </span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.875rem;color:#4B5563;">
+                        <MudIcon Icon="@Icons.Material.Filled.Phone" Style="font-size:18px;color:#9CA3AF;" />
+                        <span>@_cliente.Telefono</span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(_cliente.Email))
+                    {
+                        <div style="display:flex;align-items:center;gap:8px;font-size:0.875rem;color:#4B5563;">
+                            <MudIcon Icon="@Icons.Material.Filled.Email" Style="font-size:18px;color:#9CA3AF;" />
+                            <span>@_cliente.Email</span>
+                        </div>
+                    }
+                    <div style="display:flex;align-items:center;gap:8px;font-size:0.875rem;color:#4B5563;">
+                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="font-size:18px;color:#9CA3AF;" />
+                        <span>@_cliente.Direccion, @_cliente.Comuna</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <h3 style="font-size:1rem;color:#1E2D4E;margin:0 0 12px 0;">Historial de Servicios</h3>
+                @if (_servicios.Count == 0)
+                {
+                    <p style="color:#6B7280;font-size:0.875rem;text-align:center;padding:24px 0;">Sin servicios registrados</p>
+                }
+                else
+                {
+                    @foreach (var s in _servicios)
+                    {
+                        <div style="padding:12px;background:#F5F7FA;border-radius:8px;margin-bottom:8px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <span style="font-size:0.875rem;font-weight:500;color:#1E2D4E;">@s.Fecha.ToString("dd/MM/yyyy")</span>
+                                <span class="badge-@s.Estado.ToLower()">@s.Estado</span>
+                            </div>
+                            <p style="font-size:0.75rem;color:#6B7280;margin:4px 0 0 0;">@s.Plan - $@s.MontoTotal.ToString("N0", new System.Globalization.CultureInfo("es-CL"))</p>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private Cliente? _cliente;
+    private List<Servicio> _servicios = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cliente = await ClienteService.ObtenerPorIdAsync(Id);
+        if (_cliente is not null)
+            _servicios = await ServicioService.ObtenerPorClienteAsync(Id);
+    }
+}
