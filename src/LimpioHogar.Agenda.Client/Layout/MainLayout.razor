@@ -1,0 +1,52 @@
+@inherits LayoutComponentBase
+@inject NavigationManager Nav
+
+<MudLayout>
+    <MudMainContent Class="pb-20" Style="background:#F5F7FA;min-height:100vh;">
+        <div style="max-width:390px;margin:0 auto;background:white;min-height:100vh;">
+            @Body
+        </div>
+    </MudMainContent>
+
+    <nav style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:white;border-top:1px solid #E5E7EB;z-index:50;box-shadow:0 -4px 6px rgba(0,0,0,0.05);">
+        <div style="display:flex;justify-content:space-around;align-items:center;height:64px;">
+            <a href="/" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/"))"
+               style="@GetNavStyle("/")">
+                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Medium" />
+                <span style="font-size:0.7rem;">Inicio</span>
+            </a>
+            <a href="/agenda" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/agenda"))"
+               style="@GetNavStyle("/agenda")">
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Medium" />
+                <span style="font-size:0.7rem;">Agenda</span>
+            </a>
+            <a href="/trabajadoras" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/trabajadoras"))"
+               style="@GetNavStyle("/trabajadoras")">
+                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Medium" />
+                <span style="font-size:0.7rem;">Personas</span>
+            </a>
+            <a href="/pagos" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/pagos"))"
+               style="@GetNavStyle("/pagos")">
+                <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Medium" />
+                <span style="font-size:0.7rem;">Pagos</span>
+            </a>
+        </div>
+    </nav>
+</MudLayout>
+
+@code {
+    private string CurrentPath => Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].TrimEnd('/');
+
+    private bool IsActive(string path)
+    {
+        var current = "/" + CurrentPath;
+        if (path == "/") return current == "/";
+        return current.StartsWith(path, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private string GetNavStyle(string path)
+    {
+        var color = IsActive(path) ? "#4CAF9A" : "#9CA3AF";
+        return $"display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;height:100%;color:{color};text-decoration:none;transition:color 0.2s;";
+    }
+}
