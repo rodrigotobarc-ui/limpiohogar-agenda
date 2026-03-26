@@ -10,9 +10,26 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
 
+var supabaseUrl = builder.Configuration["Supabase:Url"]!;
+var supabaseKey = builder.Configuration["Supabase:AnonKey"]!;
+
+builder.Services.AddScoped(_ =>
+    new Supabase.Client(
+        supabaseUrl,
+        supabaseKey,
+        new Supabase.SupabaseOptions { AutoRefreshToken = true }
+    )
+);
+
 builder.Services.AddScoped(sp => new HttpClient
 {
-    BaseAddress = new Uri(builder.Configuration["Supabase:Url"] ?? builder.HostEnvironment.BaseAddress)
+    BaseAddress = new Uri(supabaseUrl),
+    DefaultRequestHeaders =
+    {
+        { "apikey", supabaseKey },
+        { "Authorization", $"Bearer {supabaseKey}" },
+        { "Prefer", "return=representation" }
+    }
 });
 
 builder.Services.AddScoped<ISupabaseService, SupabaseService>();
