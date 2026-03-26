@@ -1,0 +1,114 @@
+@page "/agenda"
+@inject IServicioService ServicioService
+@inject NavigationManager Nav
+
+<PageTitle>LimpioHogar - Agenda</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <!-- Header -->
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);">
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0 0 12px 0;">Agenda Semanal</h1>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+            <button @onclick="SemanaAnterior" style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.ChevronLeft" Style="font-size:20px;color:#4B5563;" />
+            </button>
+            <span style="font-size:0.875rem;font-weight:500;color:#1E2D4E;">@_inicioSemana.ToString("dd") - @_finSemana.ToString("dd MMMM", new System.Globalization.CultureInfo("es-CL"))</span>
+            <button @onclick="SemanaSiguiente" style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+                <MudIcon Icon="@Icons.Material.Filled.ChevronRight" Style="font-size:20px;color:#4B5563;" />
+            </button>
+        </div>
+    </div>
+
+    <!-- Calendar Grid -->
+    <div style="padding:12px;overflow-x:auto;">
+        <div style="display:flex;gap:8px;min-width:max-content;">
+            @for (int i = 0; i < 7; i++)
+            {
+                var dia = _inicioSemana.AddDays(i);
+                var esHoy = dia == DateOnly.FromDateTime(DateTime.Today);
+                var serviciosDia = _servicios.Where(s => s.Fecha == dia).ToList();
+
+                <div style="flex-shrink:0;width:130px;">
+                    <!-- Day Header -->
+                    <div style="text-align:center;padding:8px;border-radius:8px 8px 0 0;@(esHoy ? "background:#4CAF9A;color:white;" : "background:white;color:#4B5563;")">
+                        <p style="font-size:0.75rem;margin:0;">@dia.ToString("ddd", new System.Globalization.CultureInfo("es-CL"))</p>
+                        <p style="font-size:1.125rem;font-weight:600;margin:0;">@dia.Day</p>
+                    </div>
+
+                    <!-- Events -->
+                    <div style="background:white;border-radius:0 0 8px 8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);min-height:400px;padding:8px;display:flex;flex-direction:column;gap:8px;">
+                        @foreach (var s in serviciosDia)
+                        {
+                            <div @onclick="@(() => Nav.NavigateTo($"/agenda/{s.Id}"))"
+                                 style="padding:8px;border-radius:8px;border-left:4px solid @GetStatusBorderColor(s.Estado);background:@GetStatusBgColor(s.Estado);cursor:pointer;">
+                                <p style="font-size:0.75rem;font-weight:500;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@(s.Trabajadora?.NombreCompleto ?? "Trabajadora")</p>
+                                <p style="font-size:0.7rem;color:#4B5563;margin:2px 0 0 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">@(s.Cliente?.NombreCompleto ?? "Cliente")</p>
+                                <p style="font-size:0.7rem;color:#6B7280;margin:4px 0 0 0;">@s.Hora.ToString("HH:mm")</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- FAB -->
+    <a href="/agenda/nuevo"
+       style="position:fixed;bottom:88px;right:calc(50% - 175px);width:56px;height:56px;background:#4CAF9A;color:white;border-radius:50%;box-shadow:0 4px 12px rgba(0,0,0,0.15);display:flex;align-items:center;justify-content:center;text-decoration:none;z-index:40;">
+        <MudIcon Icon="@Icons.Material.Filled.Add" Style="font-size:24px;" />
+    </a>
+</div>
+
+@code {
+    private DateOnly _inicioSemana;
+    private DateOnly _finSemana;
+    private List<Servicio> _servicios = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var hoy = DateOnly.FromDateTime(DateTime.Today);
+        var diff = (int)hoy.DayOfWeek - 1;
+        if (diff < 0) diff = 6;
+        _inicioSemana = hoy.AddDays(-diff);
+        _finSemana = _inicioSemana.AddDays(6);
+        await CargarServicios();
+    }
+
+    private async Task CargarServicios()
+    {
+        try { _servicios = await ServicioService.ObtenerPorSemanaAsync(_inicioSemana, _finSemana); }
+        catch { }
+    }
+
+    private async Task SemanaAnterior()
+    {
+        _inicioSemana = _inicioSemana.AddDays(-7);
+        _finSemana = _finSemana.AddDays(-7);
+        await CargarServicios();
+    }
+
+    private async Task SemanaSiguiente()
+    {
+        _inicioSemana = _inicioSemana.AddDays(7);
+        _finSemana = _finSemana.AddDays(7);
+        await CargarServicios();
+    }
+
+    private string GetStatusBorderColor(string estado) => estado switch
+    {
+        "pendiente" => "#FFC107",
+        "confirmado" => "#8BC34A",
+        "realizado" => "#2E7D32",
+        "cancelado" => "#F44336",
+        _ => "#9CA3AF"
+    };
+
+    private string GetStatusBgColor(string estado) => estado switch
+    {
+        "pendiente" => "#FFFDE7",
+        "confirmado" => "#F1F8E9",
+        "realizado" => "#E8F5E9",
+        "cancelado" => "#FFEBEE",
+        _ => "#F5F5F5"
+    };
+}

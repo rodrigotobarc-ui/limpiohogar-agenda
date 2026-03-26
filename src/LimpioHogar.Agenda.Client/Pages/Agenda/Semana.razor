@@ -1,0 +1,135 @@
+@page "/agenda/{Id:guid}"
+@inject IServicioService ServicioService
+@inject IPagoService PagoService
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>LimpioHogar - Detalle Servicio</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:12px;">
+        <button @onclick="@(() => Nav.NavigateTo("/agenda"))"
+                style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+            <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Style="font-size:20px;color:#4B5563;" />
+        </button>
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0;">Detalle Servicio</h1>
+    </div>
+
+    @if (_servicio is not null)
+    {
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                    <h2 style="font-size:1.125rem;color:#1E2D4E;margin:0;">@_servicio.Fecha.ToString("dd/MM/yyyy") - @_servicio.Hora.ToString("HH:mm")</h2>
+                    <span class="badge-@_servicio.Estado">@_servicio.Estado</span>
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:12px;font-size:0.875rem;">
+                    <div><span style="color:#6B7280;">Trabajadora:</span> <strong style="color:#1E2D4E;">@(_servicio.Trabajadora?.NombreCompleto ?? "—")</strong></div>
+                    <div><span style="color:#6B7280;">Cliente:</span> <strong style="color:#1E2D4E;">@(_servicio.Cliente?.NombreCompleto ?? "—")</strong></div>
+                    <div><span style="color:#6B7280;">Plan:</span> <strong style="color:#1E2D4E;">@_servicio.Plan</strong></div>
+                </div>
+            </div>
+
+            <!-- Payment Breakdown -->
+            <div style="background:linear-gradient(135deg,#1E2D4E,#2a3f6b);border-radius:12px;padding:16px;color:white;">
+                <h3 style="font-size:0.875rem;margin:0 0 12px 0;">Distribucion de Pago</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:0.875rem;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>Total servicio</span>
+                        <span style="font-weight:600;">$@_servicio.MontoTotal.ToString("N0", _cl)</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;color:#4CAF9A;">
+                        <span>Trabajadora</span>
+                        <span style="font-weight:600;">$@_servicio.MontoTrabajadora.ToString("N0", _cl)</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;opacity:0.8;">
+                        <span>Agencia</span>
+                        <span style="font-weight:600;">$@_servicio.MontoAgencia.ToString("N0", _cl)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- State Change Buttons -->
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <h3 style="font-size:0.875rem;color:#374151;margin:0 0 12px 0;">Cambiar Estado</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    @if (_servicio.Estado == "pendiente")
+                    {
+                        <button @onclick="@(() => CambiarEstado("confirmado"))"
+                                style="width:100%;padding:12px;background:#8BC34A;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500;">
+                            Confirmar Servicio
+                        </button>
+                    }
+                    @if (_servicio.Estado == "confirmado")
+                    {
+                        <button @onclick="@(() => CambiarEstado("realizado"))"
+                                style="width:100%;padding:12px;background:#2E7D32;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:500;">
+                            Marcar como Realizado
+                        </button>
+                    }
+                    @if (_servicio.Estado != "cancelado" && _servicio.Estado != "realizado")
+                    {
+                        <button @onclick="@(() => CambiarEstado("cancelado"))"
+                                style="width:100%;padding:12px;background:white;color:#F44336;border:2px solid #F44336;border-radius:8px;cursor:pointer;font-weight:500;">
+                            Cancelar Servicio
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- WhatsApp Links -->
+            @if (_servicio.Estado == "pendiente" && _servicio.Trabajadora is not null)
+            {
+                <a href="@GetWhatsAppTrabajadora()" target="_blank" rel="noopener"
+                   style="display:block;width:100%;padding:12px;background:#25D366;color:white;border:none;border-radius:12px;text-align:center;text-decoration:none;font-weight:500;">
+                    WhatsApp a Trabajadora
+                </a>
+            }
+            @if (_servicio.Estado == "confirmado" && _servicio.Cliente is not null)
+            {
+                <a href="@GetWhatsAppCliente()" target="_blank" rel="noopener"
+                   style="display:block;width:100%;padding:12px;background:#25D366;color:white;border:none;border-radius:12px;text-align:center;text-decoration:none;font-weight:500;">
+                    WhatsApp a Cliente
+                </a>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+    private Servicio? _servicio;
+    private static readonly System.Globalization.CultureInfo _cl = new("es-CL");
+
+    protected override async Task OnInitializedAsync()
+    {
+        _servicio = await ServicioService.ObtenerPorIdAsync(Id);
+    }
+
+    private async Task CambiarEstado(string nuevoEstado)
+    {
+        try
+        {
+            _servicio = await ServicioService.CambiarEstadoAsync(Id, nuevoEstado);
+            if (nuevoEstado == "realizado")
+                await PagoService.CrearPagosDeServicioAsync(_servicio);
+            Snackbar.Add($"Estado cambiado a {nuevoEstado}", Severity.Success);
+        }
+        catch { Snackbar.Add("Error al cambiar estado", Severity.Error); }
+    }
+
+    private string GetWhatsAppTrabajadora()
+    {
+        var t = _servicio!.Trabajadora!;
+        var tel = t.Telefono.Replace(" ", "").Replace("+", "");
+        return $"https://wa.me/{tel}?text=Hola+{Uri.EscapeDataString(t.Nombre)}%2C+tienes+un+servicio+agendado+el+{_servicio.Fecha:dd/MM/yyyy}+a+las+{_servicio.Hora:HH:mm}.+Plan+{_servicio.Plan}.+Confirma+tu+asistencia.+-+LimpioHogar";
+    }
+
+    private string GetWhatsAppCliente()
+    {
+        var c = _servicio!.Cliente!;
+        var tel = c.Telefono.Replace(" ", "").Replace("+", "");
+        return $"https://wa.me/{tel}?text=Hola+{Uri.EscapeDataString(c.Nombre)}%2C+confirmamos+tu+servicio+de+aseo+el+{_servicio.Fecha:dd/MM/yyyy}+a+las+{_servicio.Hora:HH:mm}.+Valor%3A+%24{_servicio.MontoTotal:N0}.+-+LimpioHogar";
+    }
+}

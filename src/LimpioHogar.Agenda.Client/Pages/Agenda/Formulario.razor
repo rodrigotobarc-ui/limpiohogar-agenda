@@ -1,0 +1,184 @@
+@page "/agenda/nuevo"
+@inject IServicioService ServicioService
+@inject ITrabajadoraService TrabajadoraService
+@inject IClienteService ClienteService
+@inject NavigationManager Nav
+@inject ISnackbar Snackbar
+
+<PageTitle>LimpioHogar - Nuevo Servicio</PageTitle>
+
+<div style="min-height:100vh;background:#F5F7FA;font-family:'Inter',sans-serif;">
+    <!-- Header -->
+    <div style="background:white;padding:16px;box-shadow:0 1px 2px rgba(0,0,0,0.05);display:flex;align-items:center;gap:12px;">
+        <button @onclick="@(() => Nav.NavigateTo("/agenda"))"
+                style="padding:8px;background:none;border:none;cursor:pointer;border-radius:8px;">
+            <MudIcon Icon="@Icons.Material.Filled.ArrowBack" Style="font-size:20px;color:#4B5563;" />
+        </button>
+        <h1 style="font-size:1.25rem;color:#1E2D4E;margin:0;">Nuevo Servicio</h1>
+    </div>
+
+    <EditForm Model="@_model" OnValidSubmit="HandleSubmit" FormName="servicio">
+        <div style="padding:16px;display:flex;flex-direction:column;gap:16px;">
+            <!-- Trabajadora -->
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Trabajadora</label>
+                <select @bind="_model.TrabajadoraId" required
+                        style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;">
+                    <option value="@Guid.Empty">Seleccionar trabajadora</option>
+                    @foreach (var t in _trabajadoras)
+                    {
+                        <option value="@t.Id">@t.NombreCompleto</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Cliente -->
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Cliente</label>
+                <select @bind="_model.ClienteId" required
+                        style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;">
+                    <option value="@Guid.Empty">Seleccionar cliente</option>
+                    @foreach (var c in _clientes)
+                    {
+                        <option value="@c.Id">@c.NombreCompleto</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Date & Time -->
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div>
+                    <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Fecha</label>
+                    <input type="date" value="@_fechaStr" @onchange="@(e => _fechaStr = e.Value?.ToString() ?? "")" min="@_minFecha"
+                           style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.8rem;box-sizing:border-box;" required />
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Hora</label>
+                    <select value="@_horaStr" @onchange="@(e => _horaStr = e.Value?.ToString() ?? "")" required
+                            style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.8rem;box-sizing:border-box;">
+                        <option value="">Hora</option>
+                        @for (int h = 8; h <= 19; h++)
+                        {
+                            <option value="@($"{h:D2}:00")">@($"{h:D2}:00")</option>
+                            <option value="@($"{h:D2}:30")">@($"{h:D2}:30")</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Plan Selector -->
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:12px;">Plan</label>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    @foreach (var plan in _planes)
+                    {
+                        var isSelected = _model.Plan == plan.Key;
+                        <label style="display:flex;align-items:center;justify-content:space-between;padding:16px;border-radius:8px;border:2px solid @(isSelected ? "#4CAF9A" : "#E5E7EB");background:@(isSelected ? "rgba(76,175,154,0.05)" : "white");cursor:pointer;transition:all 0.2s;">
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <input type="radio" name="plan" value="@plan.Key" checked="@isSelected"
+                                       @onchange="@(() => SeleccionarPlan(plan.Key))"
+                                       style="width:16px;height:16px;accent-color:#4CAF9A;" />
+                                <span style="font-weight:500;color:#1E2D4E;">@plan.Value.Nombre</span>
+                            </div>
+                            <span style="font-weight:600;color:#1E2D4E;">$@plan.Value.Total.ToString("N0", _cl)</span>
+                        </label>
+                    }
+                </div>
+            </div>
+
+            <!-- Amount Breakdown -->
+            <div style="background:linear-gradient(135deg,#1E2D4E,#2a3f6b);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;color:white;">
+                <h3 style="font-size:0.875rem;margin:0 0 12px 0;">Distribucion de Pago</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;font-size:0.875rem;">
+                    <div style="display:flex;justify-content:space-between;">
+                        <span>Total servicio</span>
+                        <span style="font-weight:600;">$@_montos.Total.ToString("N0", _cl)</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;color:#4CAF9A;">
+                        <span>Trabajadora</span>
+                        <span style="font-weight:600;">$@_montos.Trabajadora.ToString("N0", _cl)</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;opacity:0.8;">
+                        <span>Agencia</span>
+                        <span style="font-weight:600;">$@_montos.Agencia.ToString("N0", _cl)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
+                <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Notas (opcional)</label>
+                <textarea @bind="_model.Notas" rows="3"
+                          style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;resize:none;"
+                          placeholder="Detalles adicionales del servicio..."></textarea>
+            </div>
+
+            <!-- Submit -->
+            <button type="submit" disabled="@_guardando"
+                    style="width:100%;padding:16px;background:#4CAF9A;color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;">
+                @(_guardando ? "Guardando..." : "Guardar Servicio")
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private Servicio _model = new() { Plan = "basico" };
+    private string _fechaStr = string.Empty;
+    private string _horaStr = string.Empty;
+    private string _minFecha = DateTime.Today.ToString("yyyy-MM-dd");
+    private List<Trabajadora> _trabajadoras = [];
+    private List<Cliente> _clientes = [];
+    private bool _guardando;
+    private (int Total, int Trabajadora, int Agencia) _montos = Servicio.ObtenerMontos("basico");
+    private static readonly System.Globalization.CultureInfo _cl = new("es-CL");
+
+    private readonly Dictionary<string, (string Nombre, int Total)> _planes = new()
+    {
+        ["basico"] = ("Basico", 35000),
+        ["premium"] = ("Premium", 55000),
+        ["deluxe"] = ("Deluxe", 85000)
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _trabajadoras = await TrabajadoraService.ObtenerActivasAsync();
+        _clientes = await ClienteService.ObtenerActivosAsync();
+    }
+
+    private void SeleccionarPlan(string plan)
+    {
+        _model.Plan = plan;
+        _montos = Servicio.ObtenerMontos(plan);
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_model.TrabajadoraId == Guid.Empty || _model.ClienteId == Guid.Empty)
+        {
+            Snackbar.Add("Selecciona trabajadora y cliente", Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrEmpty(_fechaStr) || string.IsNullOrEmpty(_horaStr))
+        {
+            Snackbar.Add("Selecciona fecha y hora", Severity.Warning);
+            return;
+        }
+
+        _guardando = true;
+        try
+        {
+            _model.Fecha = DateOnly.Parse(_fechaStr);
+            _model.Hora = TimeOnly.Parse(_horaStr);
+            await ServicioService.CrearAsync(_model);
+            Snackbar.Add("Servicio agendado", Severity.Success);
+            Nav.NavigateTo("/agenda");
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Error al crear servicio", Severity.Error);
+        }
+        finally { _guardando = false; }
+    }
+}
