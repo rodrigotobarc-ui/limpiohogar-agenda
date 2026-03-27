@@ -1,6 +1,4 @@
 {
-  "buildCommand": "dotnet publish src/LimpioHogar.Agenda.Client -c Release -o publish",
-  "outputDirectory": "publish/wwwroot",
   "routes": [
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
