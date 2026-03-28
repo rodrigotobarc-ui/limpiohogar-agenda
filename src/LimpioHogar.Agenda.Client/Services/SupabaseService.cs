@@ -61,7 +61,12 @@ public class SupabaseService : ISupabaseService
     public async Task<T> InsertAsync<T>(string table, T item)
     {
         SetAuthHeader();
-        var response = await _http.PostAsJsonAsync($"/rest/v1/{table}", item, _jsonOptions);
+        var request = new HttpRequestMessage(HttpMethod.Post, $"/rest/v1/{table}")
+        {
+            Content = JsonContent.Create(item, options: _jsonOptions)
+        };
+        request.Headers.Add("Prefer", "return=representation");
+        var response = await _http.SendAsync(request);
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<List<T>>(_jsonOptions);
         return result![0];
@@ -73,6 +78,7 @@ public class SupabaseService : ISupabaseService
         {
             Content = JsonContent.Create(item, options: _jsonOptions)
         };
+        request.Headers.Add("Prefer", "return=representation");
         SetAuthHeader();
         var response = await _http.SendAsync(request);
         response.EnsureSuccessStatusCode();

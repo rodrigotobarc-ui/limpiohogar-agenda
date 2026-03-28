@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace LimpioHogar.Agenda.Client.Models;
 
 public class Trabajadora
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid Id { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string Apellido { get; set; } = string.Empty;
@@ -19,7 +22,9 @@ public class Trabajadora
     public bool Activa { get; set; } = true;
     public string? Notas { get; set; }
     public Guid UserId { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime CreatedAt { get; set; }
 
+    [JsonIgnore]
     public string NombreCompleto => $"{Nombre} {Apellido}";
 }

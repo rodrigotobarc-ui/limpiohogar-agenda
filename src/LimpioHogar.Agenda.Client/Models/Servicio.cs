@@ -1,7 +1,10 @@
+using System.Text.Json.Serialization;
+
 namespace LimpioHogar.Agenda.Client.Models;
 
 public class Servicio
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public Guid Id { get; set; }
     public Guid TrabajadoraId { get; set; }
     public Guid ClienteId { get; set; }
@@ -13,10 +16,13 @@ public class Servicio
     public int MontoTrabajadora { get; set; }
     public int MontoAgencia { get; set; }
     public string? Notas { get; set; }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public DateTime CreatedAt { get; set; }
 
     // Navigation properties for display
+    [JsonIgnore]
     public Trabajadora? Trabajadora { get; set; }
+    [JsonIgnore]
     public Cliente? Cliente { get; set; }
 
     public static (int Total, int Trabajadora, int Agencia) ObtenerMontos(string plan) => plan switch
