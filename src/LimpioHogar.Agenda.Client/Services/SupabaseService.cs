@@ -28,7 +28,8 @@ public class SupabaseService : ISupabaseService
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         };
     }
 
@@ -67,7 +68,11 @@ public class SupabaseService : ISupabaseService
         };
         request.Headers.Add("Prefer", "return=representation");
         var response = await _http.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var body = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"{(int)response.StatusCode}: {body}");
+        }
         var result = await response.Content.ReadFromJsonAsync<List<T>>(_jsonOptions);
         return result![0];
     }

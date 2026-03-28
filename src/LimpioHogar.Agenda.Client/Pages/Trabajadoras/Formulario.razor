@@ -172,9 +172,9 @@
                 _guardadoExitoso = true;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            Snackbar.Add("Error al guardar", Severity.Error);
+            Snackbar.Add($"Error al guardar: {ex.Message}", Severity.Error);
         }
         finally { _guardando = false; }
     }
