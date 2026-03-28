@@ -4,6 +4,7 @@
 @inject ITrabajadoraService TrabajadoraService
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar
+@inject IJSRuntime JS
 
 <PageTitle>LimpioHogar - @(_esEdicion ? "Editar" : "Nueva") Trabajadora</PageTitle>
 
@@ -115,10 +116,24 @@
                 </div>
             </div>
 
-            <button type="submit" disabled="@_guardando"
-                    style="width:100%;padding:16px;background:#4CAF9A;color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;margin-bottom:32px;">
+            <button type="submit" disabled="@(_guardando || _guardadoExitoso)"
+                    style="width:100%;padding:16px;background:#4CAF9A;color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;">
                 @(_guardando ? "Guardando..." : (_esEdicion ? "Actualizar" : "Guardar Trabajadora"))
             </button>
+
+            @if (_guardadoExitoso && !_esEdicion)
+            {
+                <button type="button" @onclick="AbrirWhatsApp"
+                        style="width:100%;padding:16px;background:#25D366;color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;display:flex;align-items:center;justify-content:center;gap:8px;">
+                    <MudIcon Icon="@Icons.Custom.Brands.WhatsApp" Style="font-size:20px;" />
+                    Enviar bienvenida por WhatsApp
+                </button>
+
+                <button type="button" @onclick="@(() => Nav.NavigateTo("/trabajadoras"))"
+                        style="width:100%;padding:16px;background:white;color:#4B5563;border:2px solid #E5E7EB;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;margin-bottom:32px;">
+                    Ir a listado
+                </button>
+            }
         </div>
     </EditForm>
 </div>
@@ -128,6 +143,7 @@
     private Trabajadora _model = new();
     private bool _esEdicion => Id.HasValue;
     private bool _guardando;
+    private bool _guardadoExitoso;
 
     protected override async Task OnInitializedAsync()
     {
@@ -144,17 +160,30 @@
         try
         {
             if (_esEdicion)
+            {
                 await TrabajadoraService.ActualizarAsync(_model);
+                Snackbar.Add("Trabajadora actualizada", Severity.Success);
+                Nav.NavigateTo("/trabajadoras");
+            }
             else
+            {
                 await TrabajadoraService.CrearAsync(_model);
-
-            Snackbar.Add(_esEdicion ? "Trabajadora actualizada" : "Trabajadora creada", Severity.Success);
-            Nav.NavigateTo("/trabajadoras");
+                Snackbar.Add("Trabajadora creada", Severity.Success);
+                _guardadoExitoso = true;
+            }
         }
         catch (Exception)
         {
             Snackbar.Add("Error al guardar", Severity.Error);
         }
         finally { _guardando = false; }
+    }
+
+    private async Task AbrirWhatsApp()
+    {
+        var numero = new string(_model.Telefono.Where(c => char.IsDigit(c)).ToArray());
+        var nombre = _model.Nombre.Split(' ')[0];
+        var url = $"https://wa.me/{numero}?text=Hola+{Uri.EscapeDataString(nombre)}%2C+bienvenida+a+*LimpioHogar+SpA*.+Tu+registro+fue+completado+exitosamente.+Te+contactaremos+cuando+tengamos+servicios+disponibles+en+tu+zona.+%F0%9F%A7%B9%E2%9C%A8";
+        await JS.InvokeVoidAsync("open", url, "_blank");
     }
 }
