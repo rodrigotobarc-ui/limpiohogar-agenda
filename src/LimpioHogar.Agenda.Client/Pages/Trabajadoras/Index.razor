@@ -35,8 +35,8 @@
                         <span>@t.Telefono</span>
                     </div>
                     <div style="display:flex;align-items:center;gap:4px;font-size:0.875rem;color:#4B5563;">
-                        <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="font-size:16px;" />
-                        <span>@(t.Comuna ?? "Sin comuna")</span>
+                        <MudIcon Icon="@Icons.Material.Filled.Train" Style="font-size:16px;" />
+                        <span>@(t.MetroCercano ?? "Sin metro")</span>
                     </div>
                 </div>
                 <MudSwitch T="bool" Value="t.Activa" Color="Color.Secondary"
@@ -68,7 +68,7 @@
             ? _trabajadoras
             : _trabajadoras.Where(t =>
                 t.NombreCompleto.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) ||
-                (t.Comuna?.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) ?? false));
+                (t.MetroCercano?.Contains(_busqueda, StringComparison.OrdinalIgnoreCase) ?? false));
 
     protected override async Task OnInitializedAsync()
     {

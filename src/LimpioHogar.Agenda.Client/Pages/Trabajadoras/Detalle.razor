@@ -34,22 +34,70 @@
                         <MudIcon Icon="@Icons.Material.Filled.Phone" Style="font-size:18px;color:#9CA3AF;" />
                         <span>@_trabajadora.Telefono</span>
                     </div>
-                    @if (!string.IsNullOrEmpty(_trabajadora.Email))
+                    @if (!string.IsNullOrEmpty(_trabajadora.MetroCercano))
                     {
                         <div style="display:flex;align-items:center;gap:8px;font-size:0.875rem;color:#4B5563;">
-                            <MudIcon Icon="@Icons.Material.Filled.Email" Style="font-size:18px;color:#9CA3AF;" />
-                            <span>@_trabajadora.Email</span>
-                        </div>
-                    }
-                    @if (!string.IsNullOrEmpty(_trabajadora.Comuna))
-                    {
-                        <div style="display:flex;align-items:center;gap:8px;font-size:0.875rem;color:#4B5563;">
-                            <MudIcon Icon="@Icons.Material.Filled.LocationOn" Style="font-size:18px;color:#9CA3AF;" />
-                            <span>@_trabajadora.Direccion, @_trabajadora.Comuna</span>
+                            <MudIcon Icon="@Icons.Material.Filled.Train" Style="font-size:18px;color:#9CA3AF;" />
+                            <span>@_trabajadora.MetroCercano</span>
                         </div>
                     }
                 </div>
             </div>
+
+            <!-- Datos Bancarios -->
+            @if (!string.IsNullOrEmpty(_trabajadora.Banco))
+            {
+                <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:20px;">
+                    <h3 style="font-size:1rem;color:#1E2D4E;margin:0 0 12px 0;font-weight:500;">Datos Bancarios</h3>
+                    <div style="display:flex;flex-direction:column;gap:8px;font-size:0.875rem;color:#4B5563;">
+                        @if (!string.IsNullOrEmpty(_trabajadora.BancoNombreTitular))
+                        {
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:#9CA3AF;">Titular</span>
+                                <span>@_trabajadora.BancoNombreTitular</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(_trabajadora.BancoRut))
+                        {
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:#9CA3AF;">RUT</span>
+                                <span>@_trabajadora.BancoRut</span>
+                            </div>
+                        }
+                        <div style="display:flex;justify-content:space-between;">
+                            <span style="color:#9CA3AF;">Banco</span>
+                            <span>@_trabajadora.Banco</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(_trabajadora.BancoTipoCuenta))
+                        {
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:#9CA3AF;">Tipo</span>
+                                <span>@(_trabajadora.BancoTipoCuenta switch {
+                                    "corriente" => "Cuenta Corriente",
+                                    "vista" => "Cuenta Vista",
+                                    "rut" => "Cuenta RUT",
+                                    "ahorro" => "Cuenta de Ahorro",
+                                    _ => _trabajadora.BancoTipoCuenta
+                                })</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(_trabajadora.BancoNumeroCuenta))
+                        {
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:#9CA3AF;">N Cuenta</span>
+                                <span>@_trabajadora.BancoNumeroCuenta</span>
+                            </div>
+                        }
+                        @if (!string.IsNullOrEmpty(_trabajadora.BancoCorreo))
+                        {
+                            <div style="display:flex;justify-content:space-between;">
+                                <span style="color:#9CA3AF;">Correo</span>
+                                <span>@_trabajadora.BancoCorreo</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
 
             <!-- Service History -->
             <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">

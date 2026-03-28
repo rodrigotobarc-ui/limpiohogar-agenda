@@ -38,19 +38,10 @@
                                placeholder="+56 9 1234 5678" />
                     </div>
                     <div style="margin-bottom:12px;">
-                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Email</label>
-                        <input @bind="_model.Email" type="email"
-                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;" />
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Direccion</label>
-                        <input @bind="_model.Direccion"
-                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;" />
-                    </div>
-                    <div style="margin-bottom:12px;">
-                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Comuna</label>
-                        <input @bind="_model.Comuna"
-                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;" />
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Metro mas cercano</label>
+                        <input @bind="_model.MetroCercano"
+                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;"
+                               placeholder="Ej: Baquedano, Los Heroes..." />
                     </div>
                 </div>
             </div>
@@ -66,15 +57,66 @@
                 </select>
             </div>
 
+            <!-- Datos Bancarios -->
             <div style="background:white;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);padding:16px;">
-                <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Notas</label>
-                <textarea @bind="_model.Notas" rows="3"
-                          style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;resize:none;"
-                          placeholder="Notas adicionales..."></textarea>
+                <h3 style="font-size:1rem;color:#1E2D4E;margin:0 0 12px 0;font-weight:500;">Datos Bancarios</h3>
+                <div class="form-two-col">
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Nombre del Titular</label>
+                        <input @bind="_model.BancoNombreTitular"
+                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;" />
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">RUT</label>
+                        <input @bind="_model.BancoRut"
+                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;"
+                               placeholder="12.345.678-9" />
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Banco</label>
+                        <select @bind="_model.Banco"
+                                style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;">
+                            <option value="">Seleccionar...</option>
+                            <option value="BancoEstado">BancoEstado</option>
+                            <option value="Santander">Santander</option>
+                            <option value="BCI">BCI</option>
+                            <option value="Scotiabank">Scotiabank</option>
+                            <option value="Itau">Itau</option>
+                            <option value="Falabella">Falabella</option>
+                            <option value="BancoChile">Banco de Chile</option>
+                            <option value="BICE">BICE</option>
+                            <option value="Security">Security</option>
+                            <option value="Ripley">Ripley</option>
+                            <option value="Consorcio">Consorcio</option>
+                            <option value="Internacional">Internacional</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Tipo de Cuenta</label>
+                        <select @bind="_model.BancoTipoCuenta"
+                                style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;">
+                            <option value="">Seleccionar...</option>
+                            <option value="corriente">Cuenta Corriente</option>
+                            <option value="vista">Cuenta Vista</option>
+                            <option value="rut">Cuenta RUT</option>
+                            <option value="ahorro">Cuenta de Ahorro</option>
+                        </select>
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Numero de Cuenta</label>
+                        <input @bind="_model.BancoNumeroCuenta"
+                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;" />
+                    </div>
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Correo Electronico</label>
+                        <input @bind="_model.BancoCorreo" type="email"
+                               style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;" />
+                    </div>
+                </div>
             </div>
 
             <button type="submit" disabled="@_guardando"
-                    style="width:100%;padding:16px;background:#4CAF9A;color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;">
+                    style="width:100%;padding:16px;background:#4CAF9A;color:white;border:none;border-radius:12px;font-size:1rem;cursor:pointer;font-weight:500;margin-bottom:32px;">
                 @(_guardando ? "Guardando..." : (_esEdicion ? "Actualizar" : "Guardar Trabajadora"))
             </button>
         </div>

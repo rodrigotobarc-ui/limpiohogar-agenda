@@ -43,6 +43,7 @@ builder.Services.AddScoped<ITrabajadoraService, TrabajadoraService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IServicioService, ServicioService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
+builder.Services.AddScoped<IWhatsAppService, WhatsAppService>();
 
 var host = builder.Build();
 
