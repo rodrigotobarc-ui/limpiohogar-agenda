@@ -1,5 +1,6 @@
 @page "/trabajadoras/nueva"
 @page "/trabajadoras/editar/{Id:guid}"
+@attribute [Authorize]
 @inject ITrabajadoraService TrabajadoraService
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar

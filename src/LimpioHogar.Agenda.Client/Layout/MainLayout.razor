@@ -1,9 +1,16 @@
 @inherits LayoutComponentBase
 @inject NavigationManager Nav
+@inject ISupabaseAuthService AuthService
+@inject SupabaseAuthStateProvider AuthStateProvider
 
 <MudLayout>
     <MudMainContent Class="pb-20" Style="background:#F5F7FA;min-height:100vh;">
-        <div style="max-width:390px;margin:0 auto;background:white;min-height:100vh;">
+        <div style="max-width:390px;margin:0 auto;background:white;min-height:100vh;position:relative;">
+            <button @onclick="HandleLogout"
+                    style="position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:#9CA3AF;z-index:10;padding:4px;"
+                    title="Cerrar sesion">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" />
+            </button>
             @Body
         </div>
     </MudMainContent>
@@ -35,6 +42,13 @@
 </MudLayout>
 
 @code {
+    private async Task HandleLogout()
+    {
+        await AuthService.LogoutAsync();
+        AuthStateProvider.NotifyUserLogout();
+        Nav.NavigateTo("/login");
+    }
+
     private string CurrentPath => Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].TrimEnd('/');
 
     private bool IsActive(string path)

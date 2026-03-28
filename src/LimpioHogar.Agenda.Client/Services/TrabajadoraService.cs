@@ -15,10 +15,12 @@ public interface ITrabajadoraService
 public class TrabajadoraService : ITrabajadoraService
 {
     private readonly ISupabaseService _supabase;
+    private readonly ISupabaseAuthService _auth;
 
-    public TrabajadoraService(ISupabaseService supabase)
+    public TrabajadoraService(ISupabaseService supabase, ISupabaseAuthService auth)
     {
         _supabase = supabase;
+        _auth = auth;
     }
 
     public Task<List<Trabajadora>> ObtenerTodasAsync()
@@ -31,7 +33,10 @@ public class TrabajadoraService : ITrabajadoraService
         => _supabase.GetByIdAsync<Trabajadora>("trabajadoras", id);
 
     public Task<Trabajadora> CrearAsync(Trabajadora trabajadora)
-        => _supabase.InsertAsync("trabajadoras", trabajadora);
+    {
+        trabajadora.UserId = _auth.GetUserId() ?? throw new InvalidOperationException("Usuario no autenticado");
+        return _supabase.InsertAsync("trabajadoras", trabajadora);
+    }
 
     public Task<Trabajadora> ActualizarAsync(Trabajadora trabajadora)
         => _supabase.UpdateAsync("trabajadoras", trabajadora.Id, trabajadora);

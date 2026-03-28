@@ -3,20 +3,31 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<Router AppAssembly="@typeof(App).Assembly">
-    <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
-    </Found>
-    <NotFound>
-        <PageTitle>No encontrado</PageTitle>
-        <LayoutView Layout="@typeof(MainLayout)">
-            <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8 text-center">
-                <MudText Typo="Typo.h5">Pagina no encontrada</MudText>
-            </MudContainer>
-        </LayoutView>
-    </NotFound>
-</Router>
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(App).Assembly">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    <LimpioHogar.Agenda.Client.Components.RedirectToLogin />
+                </NotAuthorized>
+                <Authorizing>
+                    <div style="display:flex;align-items:center;justify-content:center;height:100vh;">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                </Authorizing>
+            </AuthorizeRouteView>
+            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+        </Found>
+        <NotFound>
+            <PageTitle>No encontrado</PageTitle>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <MudContainer MaxWidth="MaxWidth.Small" Class="mt-8 text-center">
+                    <MudText Typo="Typo.h5">Pagina no encontrada</MudText>
+                </MudContainer>
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
 
 @code {
     private readonly MudTheme _theme = new()

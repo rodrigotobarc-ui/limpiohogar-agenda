@@ -1,4 +1,5 @@
 @page "/agenda/{Id:guid}"
+@attribute [Authorize]
 @inject IServicioService ServicioService
 @inject IPagoService PagoService
 @inject NavigationManager Nav

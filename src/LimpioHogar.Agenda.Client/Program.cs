@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
@@ -9,6 +10,7 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddMudServices();
+builder.Services.AddAuthorizationCore();
 
 var supabaseUrl = builder.Configuration["Supabase:Url"]!;
 var supabaseKey = builder.Configuration["Supabase:AnonKey"]!;
@@ -27,10 +29,14 @@ builder.Services.AddScoped(sp => new HttpClient
     DefaultRequestHeaders =
     {
         { "apikey", supabaseKey },
-        { "Authorization", $"Bearer {supabaseKey}" },
         { "Prefer", "return=representation" }
     }
 });
+
+builder.Services.AddScoped<ISupabaseAuthService, SupabaseAuthService>();
+builder.Services.AddScoped<SupabaseAuthStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp =>
+    sp.GetRequiredService<SupabaseAuthStateProvider>());
 
 builder.Services.AddScoped<ISupabaseService, SupabaseService>();
 builder.Services.AddScoped<ITrabajadoraService, TrabajadoraService>();
@@ -38,4 +44,9 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IServicioService, ServicioService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
 
-await builder.Build().RunAsync();
+var host = builder.Build();
+
+var authService = host.Services.GetRequiredService<ISupabaseAuthService>();
+await authService.InitializeAsync();
+
+await host.RunAsync();

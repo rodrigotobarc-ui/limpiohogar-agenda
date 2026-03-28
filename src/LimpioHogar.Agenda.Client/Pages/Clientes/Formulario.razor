@@ -1,5 +1,6 @@
 @page "/clientes/nuevo"
 @page "/clientes/editar/{Id:guid}"
+@attribute [Authorize]
 @inject IClienteService ClienteService
 @inject NavigationManager Nav
 @inject ISnackbar Snackbar

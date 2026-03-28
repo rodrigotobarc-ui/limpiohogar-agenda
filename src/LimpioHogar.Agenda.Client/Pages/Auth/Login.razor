@@ -1,5 +1,6 @@
 @page "/login"
 @layout LimpioHogar.Agenda.Client.Layout.LoginLayout
+@attribute [AllowAnonymous]
 
 <PageTitle>LimpioHogar - Ingresar</PageTitle>
 
@@ -57,6 +58,10 @@
     private bool _loading;
     private string? _errorMessage;
 
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+    [Inject] private ISupabaseAuthService AuthService { get; set; } = default!;
+    [Inject] private SupabaseAuthStateProvider AuthStateProvider { get; set; } = default!;
+
     private async Task HandleLogin()
     {
         _loading = true;
@@ -64,11 +69,11 @@
 
         try
         {
-            // TODO: Integrate Supabase Auth
-            await Task.Delay(500);
+            await AuthService.LoginAsync(_loginModel.Email, _loginModel.Password);
+            AuthStateProvider.NotifyUserAuthentication();
             Nav.NavigateTo("/");
         }
-        catch (Exception ex)
+        catch
         {
             _errorMessage = "Email o contrasena incorrectos";
         }
@@ -77,8 +82,6 @@
             _loading = false;
         }
     }
-
-    [Inject] private NavigationManager Nav { get; set; } = default!;
 
     private class LoginModel
     {

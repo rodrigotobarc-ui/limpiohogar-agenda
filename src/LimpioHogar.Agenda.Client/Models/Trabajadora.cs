@@ -12,6 +12,7 @@ public class Trabajadora
     public string EstadoMigratorio { get; set; } = "no_informado";
     public bool Activa { get; set; } = true;
     public string? Notas { get; set; }
+    public Guid UserId { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public string NombreCompleto => $"{Nombre} {Apellido}";

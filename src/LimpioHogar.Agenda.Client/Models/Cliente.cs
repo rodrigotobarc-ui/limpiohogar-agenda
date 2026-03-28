@@ -12,6 +12,7 @@ public class Cliente
     public string Tipo { get; set; } = "casa";
     public string? Notas { get; set; }
     public bool Activo { get; set; } = true;
+    public Guid UserId { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public string NombreCompleto => $"{Nombre} {Apellido}";
