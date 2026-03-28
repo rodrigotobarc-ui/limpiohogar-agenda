@@ -20,6 +20,16 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider
             return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
 
         var claims = ParseClaimsFromJwt(token);
+
+        // Verificar si el token esta expirado
+        var expClaim = claims.FirstOrDefault(c => c.Type == "exp");
+        if (expClaim is not null && long.TryParse(expClaim.Value, out var exp))
+        {
+            var expDate = DateTimeOffset.FromUnixTimeSeconds(exp);
+            if (expDate <= DateTimeOffset.UtcNow)
+                return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+        }
+
         var identity = new ClaimsIdentity(claims, "supabase");
         return Task.FromResult(new AuthenticationState(new ClaimsPrincipal(identity)));
     }
@@ -47,6 +57,9 @@ public class SupabaseAuthStateProvider : AuthenticationStateProvider
 
             if (kvp.TryGetValue("email", out var email))
                 claims.Add(new Claim(ClaimTypes.Email, email.GetString()!));
+
+            if (kvp.TryGetValue("exp", out var expVal))
+                claims.Add(new Claim("exp", expVal.GetRawText()));
 
             if (kvp.TryGetValue("app_metadata", out var appMeta))
             {

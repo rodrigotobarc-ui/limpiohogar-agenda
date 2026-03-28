@@ -41,6 +41,11 @@ public class SupabaseAuthService : ISupabaseAuthService
 
             await _supabaseClient.Auth.SetSession(session.AccessToken, session.RefreshToken);
             await PersistSession();
+
+            _supabaseClient.Auth.AddStateChangedListener((_, _) =>
+            {
+                _ = PersistSession();
+            });
         }
         catch
         {
