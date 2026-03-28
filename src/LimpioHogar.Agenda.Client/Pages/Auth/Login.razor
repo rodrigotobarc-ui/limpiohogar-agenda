@@ -19,7 +19,7 @@
         <EditForm Model="@_loginModel" OnValidSubmit="HandleLogin" FormName="login">
             <div style="margin-bottom:16px;">
                 <label style="display:block;font-size:0.875rem;color:#374151;margin-bottom:8px;">Email</label>
-                <input type="email" @bind="_loginModel.Email"
+                <input @ref="_emailInput" type="email" @bind="_loginModel.Email"
                        style="width:100%;padding:12px 16px;border-radius:8px;background:#F5F7FA;border:2px solid transparent;outline:none;font-size:0.875rem;box-sizing:border-box;"
                        placeholder="tu@email.com" required />
             </div>
@@ -57,10 +57,17 @@
     private LoginModel _loginModel = new();
     private bool _loading;
     private string? _errorMessage;
+    private ElementReference _emailInput;
 
     [Inject] private NavigationManager Nav { get; set; } = default!;
     [Inject] private ISupabaseAuthService AuthService { get; set; } = default!;
     [Inject] private SupabaseAuthStateProvider AuthStateProvider { get; set; } = default!;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+            await _emailInput.FocusAsync();
+    }
 
     private async Task HandleLogin()
     {

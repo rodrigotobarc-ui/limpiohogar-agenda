@@ -1,5 +1,9 @@
 @page "/"
 @attribute [Authorize]
+@inject IServicioService ServicioService
+@inject ITrabajadoraService TrabajadoraService
+@inject IClienteService ClienteService
+@inject IPagoService PagoService
 
 <PageTitle>LimpioHogar - Inicio</PageTitle>
 
@@ -77,21 +81,42 @@
 
 @code {
     private List<ServicioHoy> _serviciosHoy = [];
-    private int _comisionNeta = 450000;
-    private int _ingresosTotales = 850000;
-    private int _pagadoTrabajadoras = 400000;
-    private int _serviciosCompletados = 15;
+    private int _comisionNeta;
+    private int _ingresosTotales;
+    private int _pagadoTrabajadoras;
+    private int _serviciosCompletados;
 
     protected override async Task OnInitializedAsync()
     {
-        // TODO: Load from ServicioService
-        _serviciosHoy =
-        [
-            new("Maria Gonzalez", "Sr. Lopez", "09:00", "Confirmado"),
-            new("Ana Silva", "Familia Perez", "11:00", "Pendiente"),
-            new("Carolina Rojas", "Sra. Martinez", "14:00", "Confirmado"),
-            new("Patricia Munoz", "Edificio Central", "16:00", "Realizado"),
-        ];
+        var hoy = DateOnly.FromDateTime(DateTime.Now);
+        var servicios = await ServicioService.ObtenerPorFechaAsync(hoy);
+
+        var trabajadoras = await TrabajadoraService.ObtenerTodasAsync();
+        var clientes = await ClienteService.ObtenerTodosAsync();
+
+        var trabajadorasDict = trabajadoras.ToDictionary(t => t.Id, t => t.NombreCompleto);
+        var clientesDict = clientes.ToDictionary(c => c.Id, c => c.NombreCompleto);
+
+        _serviciosHoy = servicios.Select(s => new ServicioHoy(
+            trabajadorasDict.GetValueOrDefault(s.TrabajadoraId, "Sin asignar"),
+            clientesDict.GetValueOrDefault(s.ClienteId, "Sin asignar"),
+            s.Hora.ToString("HH:mm"),
+            s.Estado switch
+            {
+                "pendiente" => "Pendiente",
+                "confirmado" => "Confirmado",
+                "realizado" => "Realizado",
+                "cancelado" => "Cancelado",
+                _ => s.Estado
+            }
+        )).ToList();
+
+        var ahora = DateTime.Now;
+        var pagos = await PagoService.ObtenerPorMesAsync(ahora.Year, ahora.Month);
+        _ingresosTotales = pagos.Where(p => p.Tipo == "ingreso_cliente").Sum(p => p.Monto);
+        _pagadoTrabajadoras = pagos.Where(p => p.Tipo == "egreso_trabajadora").Sum(p => p.Monto);
+        _comisionNeta = _ingresosTotales - _pagadoTrabajadoras;
+        _serviciosCompletados = pagos.Where(p => p.Tipo == "ingreso_cliente" && p.Confirmado).Count();
     }
 
     private record ServicioHoy(string Trabajadora, string Cliente, string Hora, string Estado);

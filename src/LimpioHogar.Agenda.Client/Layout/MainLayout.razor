@@ -4,38 +4,38 @@
 @inject SupabaseAuthStateProvider AuthStateProvider
 
 <MudLayout>
-    <MudMainContent Class="pb-20" Style="background:#F5F7FA;min-height:100vh;">
+    <MudMainContent Class="pb-24" Style="background:#F5F7FA;min-height:100vh;">
         <div style="max-width:390px;margin:0 auto;background:white;min-height:100vh;position:relative;">
             <button @onclick="HandleLogout"
-                    style="position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:#9CA3AF;z-index:10;padding:4px;"
+                    style="position:absolute;top:12px;right:12px;background:none;border:none;cursor:pointer;color:#9CA3AF;z-index:10;padding:12px;"
                     title="Cerrar sesion">
-                <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Small" />
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Size="Size.Large" />
             </button>
             @Body
         </div>
     </MudMainContent>
 
-    <nav style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:white;border-top:1px solid #E5E7EB;z-index:50;box-shadow:0 -4px 6px rgba(0,0,0,0.05);">
-        <div style="display:flex;justify-content:space-around;align-items:center;height:64px;">
+    <nav style="position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;background:white;border-top:1px solid #E5E7EB;z-index:50;box-shadow:0 -4px 6px rgba(0,0,0,0.05);padding-bottom:env(safe-area-inset-bottom,0px);">
+        <div style="display:flex;justify-content:space-around;align-items:center;height:80px;">
             <a href="/" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/"))"
                style="@GetNavStyle("/")">
-                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Medium" />
-                <span style="font-size:0.7rem;">Inicio</span>
+                <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Large" />
+                <span style="font-size:0.8rem;">Inicio</span>
             </a>
             <a href="/agenda" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/agenda"))"
                style="@GetNavStyle("/agenda")">
-                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Medium" />
-                <span style="font-size:0.7rem;">Agenda</span>
+                <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Large" />
+                <span style="font-size:0.8rem;">Agenda</span>
             </a>
-            <a href="/trabajadoras" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/trabajadoras"))"
-               style="@GetNavStyle("/trabajadoras")">
-                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Medium" />
-                <span style="font-size:0.7rem;">Personas</span>
+            <a href="/personas" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/personas"))"
+               style="@GetNavStyle("/personas")">
+                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" />
+                <span style="font-size:0.8rem;">Personas</span>
             </a>
             <a href="/pagos" @onclick:preventDefault @onclick="@(() => Nav.NavigateTo("/pagos"))"
                style="@GetNavStyle("/pagos")">
-                <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Medium" />
-                <span style="font-size:0.7rem;">Pagos</span>
+                <MudIcon Icon="@Icons.Material.Filled.Payments" Size="Size.Large" />
+                <span style="font-size:0.8rem;">Pagos</span>
             </a>
         </div>
     </nav>
@@ -55,6 +55,10 @@
     {
         var current = "/" + CurrentPath;
         if (path == "/") return current == "/";
+        if (path == "/personas")
+            return current.StartsWith("/personas", StringComparison.OrdinalIgnoreCase)
+                || current.StartsWith("/trabajadoras", StringComparison.OrdinalIgnoreCase)
+                || current.StartsWith("/clientes", StringComparison.OrdinalIgnoreCase);
         return current.StartsWith(path, StringComparison.OrdinalIgnoreCase);
     }
 
